@@ -133,8 +133,16 @@ jobs:
             rm -rf Payload/Spotify.app/Watch
           fi
           
+          # Rebuild IPA without previously removed WatchKit files
+          rm -f "$(basename "$OUT_IPA")"
           zip -qry "$(basename "$OUT_IPA")" Payload
           rm -rf Payload
+
+          # Check that WatchKit components are gone
+          if unzip -Z1 "$(basename "$OUT_IPA")" | grep -Ei '(^|/)(Watch|com\.apple\.WatchPlaceholder)/'; then
+            echo "::error::WatchKit components remain in IPA"
+            exit 1
+          fi
 
       - name: Create Patched Duplicate & LC-inject zxPluginsInject
         run: |
